@@ -7,23 +7,13 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
 import sys
-
-# glaobal Constants
-# TODO: make these constants configurable
-keybind1 = "x"
-keybind2 = "c"
-targetHz = 1000
-drawFPS = 60
-secondsKept = 2
-lineColor = '#FFFFFF'
-bgColor = '#000000'
-thinTopBottomLineColor = '#808080'
-thinLineThickness = 0.2
+from settings import Settings
 
 # two deques to store the analog values of the keys, initialized to 0
-key1_deque = deque([0] * (targetHz * secondsKept), maxlen=(targetHz * secondsKept))
-key2_deque = deque([0] * (targetHz * secondsKept), maxlen=(targetHz * secondsKept))
-
+def init_deque(settings):
+	global key1_deque, key2_deque
+	key1_deque = deque([0] * (settings.targetHz * settings.secondsKept), maxlen=(settings.targetHz * settings.secondsKept))
+	key2_deque = deque([0] * (settings.targetHz * settings.secondsKept), maxlen=(settings.targetHz * settings.secondsKept))
 
 
 def poll_keys(wp):
@@ -31,11 +21,11 @@ def poll_keys(wp):
 	key1_deque.append(result[0])
 	key2_deque.append(result[1])
 
-def update_key_loop(id, stop):
+def update_key_loop(id, stop, settings):
 	#init wooting sdk wrapper
-	wp = input_wrapper.Wrapper(input_wrapper.get_usb_code(keybind1), input_wrapper.get_usb_code(keybind2))
+	wp = input_wrapper.Wrapper(input_wrapper.get_usb_code(settings.keybind1), input_wrapper.get_usb_code(settings.keybind2))
 
-	interval = 1 / targetHz
+	interval = 1 / settings.targetHz
 	next_call = time.time()
 	
 	while True:
@@ -52,23 +42,23 @@ def update_key_loop(id, stop):
 	
 
 def update_plot():
-	global key1_deque, key2_deque, ax1, ax2
+	global key1_deque, key2_deque, ax1, ax2, settings
 
 	# Update the plots
 	ax1.clear()
-	ax1.plot(key1_deque, color=lineColor)
+	ax1.plot(key1_deque, color=settings.lineColor)
 	ax1.set(ylim=(-0.01,1.01))
 	ax1.axis('off')  # Remove the axes
 
 	ax2.clear()
-	ax2.plot(key2_deque,  color=lineColor)
+	ax2.plot(key2_deque,  color=settings.lineColor)
 	ax2.set(ylim=(-0.01,1.01))
 	ax2.axis('off')  # Remove the axes
 
-	ax1.axhline(y=0, color=thinTopBottomLineColor, linestyle='-', linewidth=thinLineThickness)
-	ax1.axhline(y=1, color=thinTopBottomLineColor, linestyle='-', linewidth=thinLineThickness)
-	ax2.axhline(y=0, color=thinTopBottomLineColor, linestyle='-', linewidth=thinLineThickness)
-	ax2.axhline(y=1, color=thinTopBottomLineColor, linestyle='-', linewidth=thinLineThickness)
+	ax1.axhline(y=0, color=settings.thinTopBottomLineColor, linestyle='-', linewidth=settings.thinLineThickness)
+	ax1.axhline(y=1, color=settings.thinTopBottomLineColor, linestyle='-', linewidth=settings.thinLineThickness)
+	ax2.axhline(y=0, color=settings.thinTopBottomLineColor, linestyle='-', linewidth=settings.thinLineThickness)
+	ax2.axhline(y=1, color=settings.thinTopBottomLineColor, linestyle='-', linewidth=settings.thinLineThickness)
 
 	
 
@@ -76,7 +66,7 @@ def update_plot():
 	canvas.draw()
 
 	# Schedule the next update
-	frame_interval = 1000 / drawFPS
+	frame_interval = 1000 / settings.drawFPS
 	root.after(int(frame_interval), update_plot)  # Update every 100 milliseconds (0.1 second)
 
 def _quit():
@@ -86,8 +76,12 @@ def _quit():
 	root.destroy() 
 
 if __name__ == "__main__":
+	# Load Settings
+	settings = Settings()
+
+	#start the key polling thread
 	stop_threads = False
-	key_thread = threading.Thread(target=update_key_loop, args=(id, lambda: stop_threads)).start()
+	key_thread = threading.Thread(target=update_key_loop, args=(id, lambda: stop_threads, settings)).start()
 
 
 	# Create the main window
@@ -96,6 +90,10 @@ if __name__ == "__main__":
 	root.title("woot-overlay")
 	root.geometry("800x200")
 
+	
+
+	init_deque(settings)
+
 	# Create a frame for the plots
 	frame = ttk.Frame(root)
 	frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -103,7 +101,7 @@ if __name__ == "__main__":
 	# Create a matplotlib figure
 	fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 8))
 	fig.subplots_adjust(left=0, right=1, top=0.9, bottom=0.1)
-	fig.patch.set_facecolor(bgColor)
+	fig.patch.set_facecolor(settings.bgColor)
 
 	# Integrate the figure into the tkinter canvas
 	canvas = FigureCanvasTkAgg(fig, master=frame)
