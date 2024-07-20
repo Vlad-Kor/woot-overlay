@@ -106,5 +106,5 @@ key_to_usb = {
 }
 
 def get_usb_code(key_name):
-    return key_to_usb.get(key_name, "Key not found")
+    return key_to_usb.get(key_name.upper(), "Key not found")
 
