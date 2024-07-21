@@ -67,7 +67,7 @@ def update_plot():
 
 	# Schedule the next update
 	frame_interval = 1000 / settings.drawFPS
-	root.after(int(frame_interval), update_plot)  # Update every 100 milliseconds (0.1 second)
+	root.after(int(frame_interval), update_plot)  # Update every at the desired fps
 
 def _quit():
 	global stop_threads, key_thread
