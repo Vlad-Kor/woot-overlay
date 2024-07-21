@@ -1,5 +1,6 @@
-woot-overlay, a key-overlay for wooting keyboards
+![preview](https://github.com/user-attachments/assets/591dbcea-2d2b-4565-90c9-f95d7e648f08)
 
+woot-overlay, a key-overlay for wooting keyboards
 # Installation instructions
 ## Windows
 - Download and install [Wootility](https://wooting.io/wootility)
